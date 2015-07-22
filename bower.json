@@ -1,0 +1,19 @@
+{
+  "name": "scorm-api-wrapper",
+  "license": "MIT",
+  "main": "src/JavaScript/SCORM_API_wrapper.js",
+  "ignore": [
+    ".*",
+    "*.custom.*",
+    "*.log",
+    "*.map",
+    "*.md",
+    "component.json",
+    "package.json",
+    "doc",
+    "node_modules",
+    "perf",
+    "test",
+    "vendor"
+  ]
+}
