@@ -57,3 +57,8 @@ scormAPI.save();
 scormAPI.quit();
 
 ```
+
+## Useful links
+
+http://scorm.com/scorm-explained/technical-scorm/run-time/
+http://scorm.com/scorm-explained/technical-scorm/run-time/run-time-reference/
