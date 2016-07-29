@@ -2,60 +2,65 @@
 
 /* ===========================================================
 
-pipwerks SCORM Wrapper for JavaScript
-v1.1.20150614
+ pipwerks SCORM Wrapper for JavaScript
+ v1.1.20150614
 
-Created by Philip Hutchison, January 2008-2014
-https://github.com/pipwerks/scorm-api-wrapper
+ Created by Philip Hutchison, January 2008-2014
+ https://github.com/pipwerks/scorm-api-wrapper
 
-Copyright (c) Philip Hutchison
-MIT-style license: http://pipwerks.mit-license.org/
+ Modified by Adam Nowocin, July 2016
+ https://github.com/adamnowocin/scorm-api-wrapper
 
-This wrapper works with both SCORM 1.2 and SCORM 2004.
+ Copyright (c) Philip Hutchison
+ MIT-style license: http://pipwerks.mit-license.org/
 
-Inspired by APIWrapper.js, created by the ADL and
-Concurrent Technologies Corporation, distributed by
-the ADL (http://www.adlnet.gov/scorm).
+ This wrapper works with both SCORM 1.2 and SCORM 2004.
 
-SCORM.API.find() and SCORM.API.get() functions based
-on ADL code, modified by Mike Rustici
-(http://www.scorm.com/resources/apifinder/SCORMAPIFinder.htm),
-further modified by Philip Hutchison
+ Inspired by APIWrapper.js, created by the ADL and
+ Concurrent Technologies Corporation, distributed by
+ the ADL (http://www.adlnet.gov/scorm).
 
-=============================================================== */
+ SCORM.API.find() and SCORM.API.get() functions based
+ on ADL code, modified by Mike Rustici
+ (http://www.scorm.com/resources/apifinder/SCORMAPIFinder.htm),
+ further modified by Philip Hutchison
+
+ =============================================================== */
 
 
 var pipwerks = {};                                  //pipwerks 'namespace' helps ensure no conflicts with possible other "SCORM" variables
 pipwerks.UTILS = {};                                //For holding UTILS functions
-pipwerks.debug = { isActive: true };                //Enable (true) or disable (false) for debug mode
+pipwerks.debug = {isActive: true};                //Enable (true) or disable (false) for debug mode
 
 pipwerks.SCORM = {                                  //Define the SCORM object
-    version:    null,                               //Store SCORM version.
-    handleCompletionStatus: true,                   //Whether or not the wrapper should automatically handle the initial completion status
-    handleExitMode: true,                           //Whether or not the wrapper should automatically handle the exit mode
-    API:        { handle: null,
-                  isFound: false },                 //Create API child object
-    connection: { isActive: false },                //Create connection child object
-    data:       { completionStatus: null,
-                  exitStatus: null },               //Create data child object
-    debug:      {}                                  //Create debug child object
+  version: null,                               //Store SCORM version.
+  handleCompletionStatus: true,                   //Whether or not the wrapper should automatically handle the initial completion status
+  handleExitMode: true,                           //Whether or not the wrapper should automatically handle the exit mode
+  API: {
+    handle: null,
+    isFound: false
+  },                 //Create API child object
+  connection: {isActive: false},                //Create connection child object
+  data: {
+    completionStatus: null,
+    exitStatus: null
+  },               //Create data child object
+  debug: {}                                  //Create debug child object
 };
-
 
 
 /* --------------------------------------------------------------------------------
-   pipwerks.SCORM.isAvailable
-   A simple function to allow Flash ExternalInterface to confirm
-   presence of JS wrapper before attempting any LMS communication.
+ pipwerks.SCORM.isAvailable
+ A simple function to allow Flash ExternalInterface to confirm
+ presence of JS wrapper before attempting any LMS communication.
 
-   Parameters: none
-   Returns:    Boolean (true)
------------------------------------------------------------------------------------ */
+ Parameters: none
+ Returns:    Boolean (true)
+ ----------------------------------------------------------------------------------- */
 
-pipwerks.SCORM.isAvailable = function(){
-    return true;
+pipwerks.SCORM.isAvailable = function () {
+  return true;
 };
-
 
 
 // ------------------------------------------------------------------------- //
@@ -64,166 +69,165 @@ pipwerks.SCORM.isAvailable = function(){
 
 
 /* -------------------------------------------------------------------------
-   pipwerks.SCORM.API.find(window)
-   Looks for an object named API in parent and opener windows
+ pipwerks.SCORM.API.find(window)
+ Looks for an object named API in parent and opener windows
 
-   Parameters: window (the browser window object).
-   Returns:    Object if API is found, null if no API found
----------------------------------------------------------------------------- */
+ Parameters: window (the browser window object).
+ Returns:    Object if API is found, null if no API found
+ ---------------------------------------------------------------------------- */
 
-pipwerks.SCORM.API.find = function(win){
+pipwerks.SCORM.API.find = function (win) {
 
-    var API = null,
-        findAttempts = 0,
-        findAttemptLimit = 500,
-        traceMsgPrefix = "SCORM.API.find",
-        trace = pipwerks.UTILS.trace,
-        scorm = pipwerks.SCORM;
+  var API = null,
+    findAttempts = 0,
+    findAttemptLimit = 500,
+    traceMsgPrefix = "SCORM.API.find",
+    trace = pipwerks.UTILS.trace,
+    scorm = pipwerks.SCORM;
 
-    while ((!win.API && !win.API_1484_11) &&
-           (win.parent) &&
-           (win.parent != win) &&
-           (findAttempts <= findAttemptLimit)){
+  while ((!win.API && !win.API_1484_11) &&
+  (win.parent) &&
+  (win.parent != win) &&
+  (findAttempts <= findAttemptLimit)) {
 
-                findAttempts++;
-                win = win.parent;
+    findAttempts++;
+    win = win.parent;
 
-    }
+  }
 
-    //If SCORM version is specified by user, look for specific API
-    if(scorm.version){
+  //If SCORM version is specified by user, look for specific API
+  if (scorm.version) {
 
-        switch(scorm.version){
+    switch (scorm.version) {
 
-            case "2004" :
+      case "2004" :
 
-                if(win.API_1484_11){
+        if (win.API_1484_11) {
 
-                    API = win.API_1484_11;
+          API = win.API_1484_11;
 
-                } else {
+        } else {
 
-                    trace(traceMsgPrefix +": SCORM version 2004 was specified by user, but API_1484_11 cannot be found.");
-
-                }
-
-                break;
-
-            case "1.2" :
-
-                if(win.API){
-
-                    API = win.API;
-
-                } else {
-
-                    trace(traceMsgPrefix +": SCORM version 1.2 was specified by user, but API cannot be found.");
-
-                }
-
-                break;
+          trace(traceMsgPrefix + ": SCORM version 2004 was specified by user, but API_1484_11 cannot be found.");
 
         }
 
-    } else {                             //If SCORM version not specified by user, look for APIs
+        break;
 
-        if(win.API_1484_11) {            //SCORM 2004-specific API.
+      case "1.2" :
 
-            scorm.version = "2004";      //Set version
-            API = win.API_1484_11;
+        if (win.API) {
 
-        } else if(win.API){              //SCORM 1.2-specific API
+          API = win.API;
 
-            scorm.version = "1.2";       //Set version
-            API = win.API;
+        } else {
+
+          trace(traceMsgPrefix + ": SCORM version 1.2 was specified by user, but API cannot be found.");
 
         }
 
-    }
-
-    if(API){
-
-        trace(traceMsgPrefix +": API found. Version: " +scorm.version);
-        trace("API: " +API);
-
-    } else {
-
-        trace(traceMsgPrefix +": Error finding API. \nFind attempts: " +findAttempts +". \nFind attempt limit: " +findAttemptLimit);
+        break;
 
     }
 
-    return API;
+  } else {                             //If SCORM version not specified by user, look for APIs
+
+    if (win.API_1484_11) {            //SCORM 2004-specific API.
+
+      scorm.version = "2004";      //Set version
+      API = win.API_1484_11;
+
+    } else if (win.API) {              //SCORM 1.2-specific API
+
+      scorm.version = "1.2";       //Set version
+      API = win.API;
+
+    }
+
+  }
+
+  if (API) {
+
+    trace(traceMsgPrefix + ": API found. Version: " + scorm.version);
+    trace("API: " + API);
+
+  } else {
+
+    trace(traceMsgPrefix + ": Error finding API. \nFind attempts: " + findAttempts + ". \nFind attempt limit: " + findAttemptLimit);
+
+  }
+
+  return API;
 
 };
 
 
 /* -------------------------------------------------------------------------
-   pipwerks.SCORM.API.get()
-   Looks for an object named API, first in the current window's frame
-   hierarchy and then, if necessary, in the current window's opener window
-   hierarchy (if there is an opener window).
+ pipwerks.SCORM.API.get()
+ Looks for an object named API, first in the current window's frame
+ hierarchy and then, if necessary, in the current window's opener window
+ hierarchy (if there is an opener window).
 
-   Parameters:  None.
-   Returns:     Object if API found, null if no API found
----------------------------------------------------------------------------- */
+ Parameters:  None.
+ Returns:     Object if API found, null if no API found
+ ---------------------------------------------------------------------------- */
 
-pipwerks.SCORM.API.get = function(){
+pipwerks.SCORM.API.get = function () {
 
-    var API = null,
-        win = window,
-        scorm = pipwerks.SCORM,
-        find = scorm.API.find,
-        trace = pipwerks.UTILS.trace;
+  var API = null,
+    win = window,
+    scorm = pipwerks.SCORM,
+    find = scorm.API.find,
+    trace = pipwerks.UTILS.trace;
 
-    API = find(win);
+  API = find(win);
 
-    if(!API && win.parent && win.parent != win){
-        API = find(win.parent);
-    }
+  if (!API && win.parent && win.parent != win) {
+    API = find(win.parent);
+  }
 
-    if(!API && win.top && win.top.opener){
-        API = find(win.top.opener);
-    }
+  if (!API && win.top && win.top.opener) {
+    API = find(win.top.opener);
+  }
 
-    //Special handling for Plateau
-    //Thanks to Joseph Venditti for the patch
-    if(!API && win.top && win.top.opener && win.top.opener.document) {
-        API = find(win.top.opener.document);
-    }
+  //Special handling for Plateau
+  //Thanks to Joseph Venditti for the patch
+  if (!API && win.top && win.top.opener && win.top.opener.document) {
+    API = find(win.top.opener.document);
+  }
 
-    if(API){
-        scorm.API.isFound = true;
-    } else {
-        trace("API.get failed: Can't find the API!");
-    }
+  if (API) {
+    scorm.API.isFound = true;
+  } else {
+    trace("API.get failed: Can't find the API!");
+  }
 
-    return API;
+  return API;
 
 };
 
 
 /* -------------------------------------------------------------------------
-   pipwerks.SCORM.API.getHandle()
-   Returns the handle to API object if it was previously set
+ pipwerks.SCORM.API.getHandle()
+ Returns the handle to API object if it was previously set
 
-   Parameters:  None.
-   Returns:     Object (the pipwerks.SCORM.API.handle variable).
----------------------------------------------------------------------------- */
+ Parameters:  None.
+ Returns:     Object (the pipwerks.SCORM.API.handle variable).
+ ---------------------------------------------------------------------------- */
 
-pipwerks.SCORM.API.getHandle = function() {
+pipwerks.SCORM.API.getHandle = function () {
 
-    var API = pipwerks.SCORM.API;
+  var API = pipwerks.SCORM.API;
 
-    if(!API.handle && !API.isFound){
+  if (!API.handle && !API.isFound) {
 
-        API.handle = API.get();
+    API.handle = API.get();
 
-    }
+  }
 
-    return API.handle;
+  return API.handle;
 
 };
-
 
 
 // ------------------------------------------------------------------------- //
@@ -232,202 +236,221 @@ pipwerks.SCORM.API.getHandle = function() {
 
 
 /* -------------------------------------------------------------------------
-   pipwerks.SCORM.connection.initialize()
-   Tells the LMS to initiate the communication session.
+ pipwerks.SCORM.connection.initialize()
+ Tells the LMS to initiate the communication session.
 
-   Parameters:  None
-   Returns:     Boolean
----------------------------------------------------------------------------- */
+ Parameters:  None
+ Returns:     Boolean
+ ---------------------------------------------------------------------------- */
 
-pipwerks.SCORM.connection.initialize = function(){
+pipwerks.SCORM.connection.initialize = function () {
 
-    var success = false,
-        scorm = pipwerks.SCORM,
-        completionStatus = scorm.data.completionStatus,
-        trace = pipwerks.UTILS.trace,
-        makeBoolean = pipwerks.UTILS.StringToBoolean,
-        debug = scorm.debug,
-        traceMsgPrefix = "SCORM.connection.initialize ";
+  var success = false,
+    scorm = pipwerks.SCORM,
+    completionStatus = scorm.data.completionStatus,
+    trace = pipwerks.UTILS.trace,
+    makeBoolean = pipwerks.UTILS.StringToBoolean,
+    debug = scorm.debug,
+    traceMsgPrefix = "SCORM.connection.initialize ";
 
-    trace("connection.initialize called.");
+  trace("connection.initialize called.");
 
-    if(!scorm.connection.isActive){
+  if (!scorm.connection.isActive) {
 
-        var API = scorm.API.getHandle(),
-            errorCode = 0;
+    var API = scorm.API.getHandle(),
+      errorCode = 0;
 
-        if(API){
+    if (API) {
 
-            switch(scorm.version){
-                case "1.2" : success = makeBoolean(API.LMSInitialize("")); break;
-                case "2004": success = makeBoolean(API.Initialize("")); break;
+      switch (scorm.version) {
+        case "1.2" :
+          success = makeBoolean(API.LMSInitialize(""));
+          break;
+        case "2004":
+          success = makeBoolean(API.Initialize(""));
+          break;
+      }
+
+      if (success) {
+
+        //Double-check that connection is active and working before returning 'true' boolean
+        errorCode = debug.getCode();
+
+        if (errorCode !== null && errorCode === 0) {
+
+          scorm.connection.isActive = true;
+
+          if (scorm.handleCompletionStatus) {
+
+            //Automatically set new launches to incomplete
+            completionStatus = scorm.status("get");
+
+            if (completionStatus) {
+
+              switch (completionStatus) {
+
+                //Both SCORM 1.2 and 2004
+                case "not attempted":
+                  scorm.status("set", "incomplete");
+                  break;
+
+                //SCORM 2004 only
+                case "unknown" :
+                  scorm.status("set", "incomplete");
+                  break;
+
+                //Additional options, presented here in case you'd like to use them
+                //case "completed"  : break;
+                //case "incomplete" : break;
+                //case "passed"     : break;    //SCORM 1.2 only
+                //case "failed"     : break;    //SCORM 1.2 only
+                //case "browsed"    : break;    //SCORM 1.2 only
+
+              }
+
+              //Commit changes
+              scorm.save();
+
             }
 
-            if(success){
-
-                //Double-check that connection is active and working before returning 'true' boolean
-                errorCode = debug.getCode();
-
-                if(errorCode !== null && errorCode === 0){
-
-                    scorm.connection.isActive = true;
-
-                    if(scorm.handleCompletionStatus){
-
-                        //Automatically set new launches to incomplete
-                        completionStatus = scorm.status("get");
-
-                        if(completionStatus){
-
-                            switch(completionStatus){
-
-                                //Both SCORM 1.2 and 2004
-                                case "not attempted": scorm.status("set", "incomplete"); break;
-
-                                //SCORM 2004 only
-                                case "unknown" : scorm.status("set", "incomplete"); break;
-
-                                //Additional options, presented here in case you'd like to use them
-                                //case "completed"  : break;
-                                //case "incomplete" : break;
-                                //case "passed"     : break;    //SCORM 1.2 only
-                                //case "failed"     : break;    //SCORM 1.2 only
-                                //case "browsed"    : break;    //SCORM 1.2 only
-
-                            }
-
-                            //Commit changes
-                            scorm.save();
-
-                        }
-
-                    }
-
-                } else {
-
-                    success = false;
-                    trace(traceMsgPrefix +"failed. \nError code: " +errorCode +" \nError info: " +debug.getInfo(errorCode));
-
-                }
-
-            } else {
-
-                errorCode = debug.getCode();
-
-                if(errorCode !== null && errorCode !== 0){
-
-                    trace(traceMsgPrefix +"failed. \nError code: " +errorCode +" \nError info: " +debug.getInfo(errorCode));
-
-                } else {
-
-                    trace(traceMsgPrefix +"failed: No response from server.");
-
-                }
-            }
+          }
 
         } else {
 
-            trace(traceMsgPrefix +"failed: API is null.");
+          success = false;
+          trace(traceMsgPrefix + "failed. \nError code: " + errorCode + " \nError info: " + debug.getInfo(errorCode));
 
         }
 
+      } else {
+
+        errorCode = debug.getCode();
+
+        if (errorCode !== null && errorCode !== 0) {
+
+          trace(traceMsgPrefix + "failed. \nError code: " + errorCode + " \nError info: " + debug.getInfo(errorCode));
+
+        } else {
+
+          trace(traceMsgPrefix + "failed: No response from server.");
+
+        }
+      }
+
     } else {
 
-          trace(traceMsgPrefix +"aborted: Connection already active.");
+      trace(traceMsgPrefix + "failed: API is null.");
 
-     }
+    }
 
-     return success;
+  } else {
+
+    trace(traceMsgPrefix + "aborted: Connection already active.");
+
+  }
+
+  return success;
 
 };
 
 
 /* -------------------------------------------------------------------------
-   pipwerks.SCORM.connection.terminate()
-   Tells the LMS to terminate the communication session
+ pipwerks.SCORM.connection.terminate()
+ Tells the LMS to terminate the communication session
 
-   Parameters:  None
-   Returns:     Boolean
----------------------------------------------------------------------------- */
+ Parameters:  None
+ Returns:     Boolean
+ ---------------------------------------------------------------------------- */
 
-pipwerks.SCORM.connection.terminate = function(){
+pipwerks.SCORM.connection.terminate = function () {
 
-    var success = false,
-        scorm = pipwerks.SCORM,
-        exitStatus = scorm.data.exitStatus,
-        completionStatus = scorm.data.completionStatus,
-        trace = pipwerks.UTILS.trace,
-        makeBoolean = pipwerks.UTILS.StringToBoolean,
-        debug = scorm.debug,
-        traceMsgPrefix = "SCORM.connection.terminate ";
+  var success = false,
+    scorm = pipwerks.SCORM,
+    exitStatus = scorm.data.exitStatus,
+    completionStatus = scorm.data.completionStatus,
+    trace = pipwerks.UTILS.trace,
+    makeBoolean = pipwerks.UTILS.StringToBoolean,
+    debug = scorm.debug,
+    traceMsgPrefix = "SCORM.connection.terminate ";
 
 
-    if(scorm.connection.isActive){
+  if (scorm.connection.isActive) {
 
-        var API = scorm.API.getHandle(),
-            errorCode = 0;
+    var API = scorm.API.getHandle(),
+      errorCode = 0;
 
-        if(API){
+    if (API) {
 
-             if(scorm.handleExitMode && !exitStatus){
+      if (scorm.handleExitMode && !exitStatus) {
 
-                if(completionStatus !== "completed" && completionStatus !== "passed"){
+        if (completionStatus !== "completed" && completionStatus !== "passed") {
 
-                    switch(scorm.version){
-                        case "1.2" : success = scorm.set("cmi.core.exit", "suspend"); break;
-                        case "2004": success = scorm.set("cmi.exit", "suspend"); break;
-                    }
-
-                } else {
-
-                    switch(scorm.version){
-                        case "1.2" : success = scorm.set("cmi.core.exit", "logout"); break;
-                        case "2004": success = scorm.set("cmi.exit", "normal"); break;
-                    }
-
-                }
-
-            }
-
-            //Ensure we persist the data
-            success = scorm.save();
-
-            if(success){
-
-                switch(scorm.version){
-                    case "1.2" : success = makeBoolean(API.LMSFinish("")); break;
-                    case "2004": success = makeBoolean(API.Terminate("")); break;
-                }
-
-                if(success){
-
-                    scorm.connection.isActive = false;
-
-                } else {
-
-                    errorCode = debug.getCode();
-                    trace(traceMsgPrefix +"failed. \nError code: " +errorCode +" \nError info: " +debug.getInfo(errorCode));
-
-                }
-
-            }
+          switch (scorm.version) {
+            case "1.2" :
+              success = scorm.set("cmi.core.exit", "suspend");
+              break;
+            case "2004":
+              success = scorm.set("cmi.exit", "suspend");
+              break;
+          }
 
         } else {
 
-            trace(traceMsgPrefix +"failed: API is null.");
+          switch (scorm.version) {
+            case "1.2" :
+              success = scorm.set("cmi.core.exit", "logout");
+              break;
+            case "2004":
+              success = scorm.set("cmi.exit", "normal");
+              break;
+          }
 
         }
 
+      }
+
+      //Ensure we persist the data
+      success = scorm.save();
+
+      if (success) {
+
+        switch (scorm.version) {
+          case "1.2" :
+            success = makeBoolean(API.LMSFinish(""));
+            break;
+          case "2004":
+            success = makeBoolean(API.Terminate(""));
+            break;
+        }
+
+        if (success) {
+
+          scorm.connection.isActive = false;
+
+        } else {
+
+          errorCode = debug.getCode();
+          trace(traceMsgPrefix + "failed. \nError code: " + errorCode + " \nError info: " + debug.getInfo(errorCode));
+
+        }
+
+      }
+
     } else {
 
-        trace(traceMsgPrefix +"aborted: Connection already terminated.");
+      trace(traceMsgPrefix + "failed: API is null.");
 
     }
 
-    return success;
+  } else {
+
+    trace(traceMsgPrefix + "aborted: Connection already terminated.");
+
+  }
+
+  return success;
 
 };
-
 
 
 // ------------------------------------------------------------------------- //
@@ -436,233 +459,327 @@ pipwerks.SCORM.connection.terminate = function(){
 
 
 /* -------------------------------------------------------------------------
-   pipwerks.SCORM.data.get(parameter)
-   Requests information from the LMS.
+ pipwerks.SCORM.data.get(parameter)
+ Requests information from the LMS.
 
-   Parameter: parameter (string, name of the SCORM data model element)
-   Returns:   string (the value of the specified data model element)
----------------------------------------------------------------------------- */
+ Parameter: parameter (string, name of the SCORM data model element)
+ Returns:   string (the value of the specified data model element)
+ ---------------------------------------------------------------------------- */
 
-pipwerks.SCORM.data.get = function(parameter){
+pipwerks.SCORM.data.get = function (parameter) {
 
-    var value = null,
-        scorm = pipwerks.SCORM,
-        trace = pipwerks.UTILS.trace,
-        debug = scorm.debug,
-        traceMsgPrefix = "SCORM.data.get(" +parameter +") ";
+  var value = null,
+    scorm = pipwerks.SCORM,
+    trace = pipwerks.UTILS.trace,
+    debug = scorm.debug,
+    traceMsgPrefix = "SCORM.data.get(" + parameter + ") ";
 
-    if(scorm.connection.isActive){
+  if (scorm.connection.isActive) {
 
-        var API = scorm.API.getHandle(),
-            errorCode = 0;
+    var API = scorm.API.getHandle(),
+      errorCode = 0;
 
-          if(API){
+    if (API) {
 
-            switch(scorm.version){
-                case "1.2" : value = API.LMSGetValue(parameter); break;
-                case "2004": value = API.GetValue(parameter); break;
-            }
+      switch (scorm.version) {
+        case "1.2" :
+          value = API.LMSGetValue(parameter);
+          break;
+        case "2004":
+          value = API.GetValue(parameter);
+          break;
+      }
 
-            errorCode = debug.getCode();
+      errorCode = debug.getCode();
 
-            //GetValue returns an empty string on errors
-            //If value is an empty string, check errorCode to make sure there are no errors
-            if(value !== "" || errorCode === 0){
+      //GetValue returns an empty string on errors
+      //If value is an empty string, check errorCode to make sure there are no errors
+      if (value !== "" || errorCode === 0) {
 
-                //GetValue is successful.
-                //If parameter is lesson_status/completion_status or exit status, let's
-                //grab the value and cache it so we can check it during connection.terminate()
-                switch(parameter){
+        //GetValue is successful.
+        //If parameter is lesson_status/completion_status or exit status, let's
+        //grab the value and cache it so we can check it during connection.terminate()
+        switch (parameter) {
 
-                    case "cmi.core.lesson_status":
-                    case "cmi.completion_status" : scorm.data.completionStatus = value; break;
+          case "cmi.core.lesson_status":
+          case "cmi.completion_status" :
+            scorm.data.completionStatus = value;
+            break;
 
-                    case "cmi.core.exit":
-                    case "cmi.exit"     : scorm.data.exitStatus = value; break;
-
-                }
-
-            } else {
-
-                trace(traceMsgPrefix +"failed. \nError code: " +errorCode +"\nError info: " +debug.getInfo(errorCode));
-
-            }
-
-        } else {
-
-            trace(traceMsgPrefix +"failed: API is null.");
+          case "cmi.core.exit":
+          case "cmi.exit"     :
+            scorm.data.exitStatus = value;
+            break;
 
         }
 
+      } else {
+
+        trace(traceMsgPrefix + "failed. \nError code: " + errorCode + "\nError info: " + debug.getInfo(errorCode));
+
+      }
+
     } else {
 
-        trace(traceMsgPrefix +"failed: API connection is inactive.");
+      trace(traceMsgPrefix + "failed: API is null.");
 
     }
 
-    trace(traceMsgPrefix +" value: " +value);
+  } else {
 
-    return String(value);
+    trace(traceMsgPrefix + "failed: API connection is inactive.");
+
+  }
+
+  trace(traceMsgPrefix + " value: " + value);
+
+  return String(value);
 
 };
 
 
 /* -------------------------------------------------------------------------
-   pipwerks.SCORM.data.set()
-   Tells the LMS to assign the value to the named data model element.
-   Also stores the SCO's completion status in a variable named
-   pipwerks.SCORM.data.completionStatus. This variable is checked whenever
-   pipwerks.SCORM.connection.terminate() is invoked.
+ pipwerks.SCORM.data.set()
+ Tells the LMS to assign the value to the named data model element.
+ Also stores the SCO's completion status in a variable named
+ pipwerks.SCORM.data.completionStatus. This variable is checked whenever
+ pipwerks.SCORM.connection.terminate() is invoked.
 
-   Parameters: parameter (string). The data model element
-               value (string). The value for the data model element
-   Returns:    Boolean
----------------------------------------------------------------------------- */
+ Parameters: parameter (string). The data model element
+ value (string). The value for the data model element
+ Returns:    Boolean
+ ---------------------------------------------------------------------------- */
 
-pipwerks.SCORM.data.set = function(parameter, value){
+pipwerks.SCORM.data.set = function (parameter, value) {
 
-    var success = false,
-        scorm = pipwerks.SCORM,
-        trace = pipwerks.UTILS.trace,
-        makeBoolean = pipwerks.UTILS.StringToBoolean,
-        debug = scorm.debug,
-        traceMsgPrefix = "SCORM.data.set(" +parameter +") ";
+  var success = false,
+    scorm = pipwerks.SCORM,
+    trace = pipwerks.UTILS.trace,
+    makeBoolean = pipwerks.UTILS.StringToBoolean,
+    debug = scorm.debug,
+    traceMsgPrefix = "SCORM.data.set(" + parameter + ") ";
 
 
-    if(scorm.connection.isActive){
+  if (scorm.connection.isActive) {
 
-        var API = scorm.API.getHandle(),
-            errorCode = 0;
+    var API = scorm.API.getHandle(),
+      errorCode = 0;
 
-        if(API){
+    if (API) {
 
-            switch(scorm.version){
-                case "1.2" : success = makeBoolean(API.LMSSetValue(parameter, value)); break;
-                case "2004": success = makeBoolean(API.SetValue(parameter, value)); break;
-            }
+      switch (scorm.version) {
+        case "1.2" :
+          success = makeBoolean(API.LMSSetValue(parameter, value));
+          break;
+        case "2004":
+          success = makeBoolean(API.SetValue(parameter, value));
+          break;
+      }
 
-            if(success){
+      if (success) {
 
-                if(parameter === "cmi.core.lesson_status" || parameter === "cmi.completion_status"){
+        if (parameter === "cmi.core.lesson_status" || parameter === "cmi.completion_status") {
 
-                    scorm.data.completionStatus = value;
-
-                }
-
-            } else {
-
-                errorCode = debug.getCode();
-
-                trace(traceMsgPrefix +"failed. \nError code: " +errorCode +". \nError info: " +debug.getInfo(errorCode));
-
-            }
-
-        } else {
-
-            trace(traceMsgPrefix +"failed: API is null.");
+          scorm.data.completionStatus = value;
 
         }
 
+      } else {
+
+        errorCode = debug.getCode();
+
+        trace(traceMsgPrefix + "failed. \nError code: " + errorCode + ". \nError info: " + debug.getInfo(errorCode));
+
+      }
+
     } else {
 
-        trace(traceMsgPrefix +"failed: API connection is inactive.");
+      trace(traceMsgPrefix + "failed: API is null.");
 
     }
 
-    return success;
+  } else {
+
+    trace(traceMsgPrefix + "failed: API connection is inactive.");
+
+  }
+
+  return success;
 
 };
 
 
 /* -------------------------------------------------------------------------
-   pipwerks.SCORM.data.save()
-   Instructs the LMS to persist all data to this point in the session
+ pipwerks.SCORM.setScoreRaw()
+ Tells the LMS to assign the value to the named data model element.
+ Also stores the SCO's completion status in a variable named
+ pipwerks.SCORM.data.completionStatus. This variable is checked whenever
+ pipwerks.SCORM.connection.terminate() is invoked.
 
-   Parameters: None
-   Returns:    Boolean
----------------------------------------------------------------------------- */
+ Parameters: value (string). The value for the data model element
+ Returns:    Boolean
+ ---------------------------------------------------------------------------- */
 
-pipwerks.SCORM.data.save = function(){
+pipwerks.SCORM.setByVersion = function (parameter12, parameter13, value) {
 
-    var success = false,
-        scorm = pipwerks.SCORM,
-        trace = pipwerks.UTILS.trace,
-        makeBoolean = pipwerks.UTILS.StringToBoolean,
-        traceMsgPrefix = "SCORM.data.save failed";
+  var success = false,
+    scorm = pipwerks.SCORM,
+    trace = pipwerks.UTILS.trace,
+    makeBoolean = pipwerks.UTILS.StringToBoolean,
+    debug = scorm.debug,
+    traceMsgPrefix = "SCORM.data.setScoreRaw(" + parameter12 + ', ' + parameter13 + ") ";
 
 
-    if(scorm.connection.isActive){
+  if (scorm.connection.isActive) {
 
-        var API = scorm.API.getHandle();
+    var API = scorm.API.getHandle(),
+      errorCode = 0;
 
-        if(API){
+    if (API) {
 
-            switch(scorm.version){
-                case "1.2" : success = makeBoolean(API.LMSCommit("")); break;
-                case "2004": success = makeBoolean(API.Commit("")); break;
-            }
+      switch (scorm.version) {
+        case "1.2" :
+          success = makeBoolean(API.LMSSetValue(parameter12, value));
+          break;
+        case "2004":
+          success = makeBoolean(API.SetValue(parameter13, value));
+          break;
+      }
 
-        } else {
+      if (success) {
 
-            trace(traceMsgPrefix +": API is null.");
+        if (parameter12 === "cmi.core.lesson_status" || parameter13 === "cmi.completion_status") {
+
+          scorm.data.completionStatus = value;
 
         }
 
+      } else {
+
+        errorCode = debug.getCode();
+
+        trace(traceMsgPrefix + "failed. \nError code: " + errorCode + ". \nError info: " + debug.getInfo(errorCode));
+
+      }
+
     } else {
 
-        trace(traceMsgPrefix +": API connection is inactive.");
+      trace(traceMsgPrefix + "failed: API is null.");
 
     }
 
-    return success;
+  } else {
+
+    trace(traceMsgPrefix + "failed: API connection is inactive.");
+
+  }
+
+  return success;
 
 };
 
 
-pipwerks.SCORM.status = function (action, status){
+/* -------------------------------------------------------------------------
+ pipwerks.SCORM.data.save()
+ Instructs the LMS to persist all data to this point in the session
 
-    var success = false,
-        scorm = pipwerks.SCORM,
-        trace = pipwerks.UTILS.trace,
-        traceMsgPrefix = "SCORM.getStatus failed",
-        cmi = "";
+ Parameters: None
+ Returns:    Boolean
+ ---------------------------------------------------------------------------- */
 
-    if(action !== null){
+pipwerks.SCORM.data.save = function () {
 
-        switch(scorm.version){
-            case "1.2" : cmi = "cmi.core.lesson_status"; break;
-            case "2004": cmi = "cmi.completion_status"; break;
-        }
+  var success = false,
+    scorm = pipwerks.SCORM,
+    trace = pipwerks.UTILS.trace,
+    makeBoolean = pipwerks.UTILS.StringToBoolean,
+    traceMsgPrefix = "SCORM.data.save failed";
 
-        switch(action){
 
-            case "get": success = scorm.data.get(cmi); break;
+  if (scorm.connection.isActive) {
 
-            case "set": if(status !== null){
+    var API = scorm.API.getHandle();
 
-                            success = scorm.data.set(cmi, status);
+    if (API) {
 
-                        } else {
-
-                            success = false;
-                            trace(traceMsgPrefix +": status was not specified.");
-
-                        }
-
-                        break;
-
-            default      : success = false;
-                        trace(traceMsgPrefix +": no valid action was specified.");
-
-        }
+      switch (scorm.version) {
+        case "1.2" :
+          success = makeBoolean(API.LMSCommit(""));
+          break;
+        case "2004":
+          success = makeBoolean(API.Commit(""));
+          break;
+      }
 
     } else {
 
-        trace(traceMsgPrefix +": action was not specified.");
+      trace(traceMsgPrefix + ": API is null.");
 
     }
 
-    return success;
+  } else {
+
+    trace(traceMsgPrefix + ": API connection is inactive.");
+
+  }
+
+  return success;
+
+};
+
+
+pipwerks.SCORM.status = function (action, status) {
+
+  var success = false,
+    scorm = pipwerks.SCORM,
+    trace = pipwerks.UTILS.trace,
+    traceMsgPrefix = "SCORM.getStatus failed",
+    cmi = "";
+
+  if (action !== null) {
+
+    switch (scorm.version) {
+      case "1.2" :
+        cmi = "cmi.core.lesson_status";
+        break;
+      case "2004":
+        cmi = "cmi.completion_status";
+        break;
+    }
+
+    switch (action) {
+
+      case "get":
+        success = scorm.data.get(cmi);
+        break;
+
+      case "set":
+        if (status !== null) {
+
+          success = scorm.data.set(cmi, status);
+
+        } else {
+
+          success = false;
+          trace(traceMsgPrefix + ": status was not specified.");
+
+        }
+
+        break;
+
+      default      :
+        success = false;
+        trace(traceMsgPrefix + ": no valid action was specified.");
+
+    }
+
+  } else {
+
+    trace(traceMsgPrefix + ": action was not specified.");
+
+  }
+
+  return success;
 
 };
 
@@ -673,103 +790,115 @@ pipwerks.SCORM.status = function (action, status){
 
 
 /* -------------------------------------------------------------------------
-   pipwerks.SCORM.debug.getCode
-   Requests the error code for the current error state from the LMS
+ pipwerks.SCORM.debug.getCode
+ Requests the error code for the current error state from the LMS
 
-   Parameters: None
-   Returns:    Integer (the last error code).
----------------------------------------------------------------------------- */
+ Parameters: None
+ Returns:    Integer (the last error code).
+ ---------------------------------------------------------------------------- */
 
-pipwerks.SCORM.debug.getCode = function(){
+pipwerks.SCORM.debug.getCode = function () {
 
-    var scorm = pipwerks.SCORM,
-        API = scorm.API.getHandle(),
-        trace = pipwerks.UTILS.trace,
-        code = 0;
+  var scorm = pipwerks.SCORM,
+    API = scorm.API.getHandle(),
+    trace = pipwerks.UTILS.trace,
+    code = 0;
 
-    if(API){
+  if (API) {
 
-        switch(scorm.version){
-            case "1.2" : code = parseInt(API.LMSGetLastError(), 10); break;
-            case "2004": code = parseInt(API.GetLastError(), 10); break;
-        }
-
-    } else {
-
-        trace("SCORM.debug.getCode failed: API is null.");
-
+    switch (scorm.version) {
+      case "1.2" :
+        code = parseInt(API.LMSGetLastError(), 10);
+        break;
+      case "2004":
+        code = parseInt(API.GetLastError(), 10);
+        break;
     }
 
-    return code;
+  } else {
+
+    trace("SCORM.debug.getCode failed: API is null.");
+
+  }
+
+  return code;
 
 };
 
 
 /* -------------------------------------------------------------------------
-   pipwerks.SCORM.debug.getInfo()
-   "Used by a SCO to request the textual description for the error code
-   specified by the value of [errorCode]."
+ pipwerks.SCORM.debug.getInfo()
+ "Used by a SCO to request the textual description for the error code
+ specified by the value of [errorCode]."
 
-   Parameters: errorCode (integer).
-   Returns:    String.
------------------------------------------------------------------------------ */
+ Parameters: errorCode (integer).
+ Returns:    String.
+ ----------------------------------------------------------------------------- */
 
-pipwerks.SCORM.debug.getInfo = function(errorCode){
+pipwerks.SCORM.debug.getInfo = function (errorCode) {
 
-    var scorm = pipwerks.SCORM,
-        API = scorm.API.getHandle(),
-        trace = pipwerks.UTILS.trace,
-        result = "";
+  var scorm = pipwerks.SCORM,
+    API = scorm.API.getHandle(),
+    trace = pipwerks.UTILS.trace,
+    result = "";
 
 
-    if(API){
+  if (API) {
 
-        switch(scorm.version){
-            case "1.2" : result = API.LMSGetErrorString(errorCode.toString()); break;
-            case "2004": result = API.GetErrorString(errorCode.toString()); break;
-        }
-
-    } else {
-
-        trace("SCORM.debug.getInfo failed: API is null.");
-
+    switch (scorm.version) {
+      case "1.2" :
+        result = API.LMSGetErrorString(errorCode.toString());
+        break;
+      case "2004":
+        result = API.GetErrorString(errorCode.toString());
+        break;
     }
 
-    return String(result);
+  } else {
+
+    trace("SCORM.debug.getInfo failed: API is null.");
+
+  }
+
+  return String(result);
 
 };
 
 
 /* -------------------------------------------------------------------------
-   pipwerks.SCORM.debug.getDiagnosticInfo
-   "Exists for LMS specific use. It allows the LMS to define additional
-   diagnostic information through the API Instance."
+ pipwerks.SCORM.debug.getDiagnosticInfo
+ "Exists for LMS specific use. It allows the LMS to define additional
+ diagnostic information through the API Instance."
 
-   Parameters: errorCode (integer).
-   Returns:    String (Additional diagnostic information about the given error code).
----------------------------------------------------------------------------- */
+ Parameters: errorCode (integer).
+ Returns:    String (Additional diagnostic information about the given error code).
+ ---------------------------------------------------------------------------- */
 
-pipwerks.SCORM.debug.getDiagnosticInfo = function(errorCode){
+pipwerks.SCORM.debug.getDiagnosticInfo = function (errorCode) {
 
-    var scorm = pipwerks.SCORM,
-        API = scorm.API.getHandle(),
-        trace = pipwerks.UTILS.trace,
-        result = "";
+  var scorm = pipwerks.SCORM,
+    API = scorm.API.getHandle(),
+    trace = pipwerks.UTILS.trace,
+    result = "";
 
-    if(API){
+  if (API) {
 
-        switch(scorm.version){
-            case "1.2" : result = API.LMSGetDiagnostic(errorCode); break;
-            case "2004": result = API.GetDiagnostic(errorCode); break;
-        }
-
-    } else {
-
-        trace("SCORM.debug.getDiagnosticInfo failed: API is null.");
-
+    switch (scorm.version) {
+      case "1.2" :
+        result = API.LMSGetDiagnostic(errorCode);
+        break;
+      case "2004":
+        result = API.GetDiagnostic(errorCode);
+        break;
     }
 
-    return String(result);
+  } else {
+
+    trace("SCORM.debug.getDiagnosticInfo failed: API is null.");
+
+  }
+
+  return String(result);
 
 };
 
@@ -781,11 +910,20 @@ pipwerks.SCORM.debug.getDiagnosticInfo = function(errorCode){
 // Because nobody likes typing verbose code.
 
 pipwerks.SCORM.init = pipwerks.SCORM.connection.initialize;
-pipwerks.SCORM.get  = pipwerks.SCORM.data.get;
-pipwerks.SCORM.set  = pipwerks.SCORM.data.set;
+pipwerks.SCORM.get = pipwerks.SCORM.data.get;
+pipwerks.SCORM.set = pipwerks.SCORM.data.set;
 pipwerks.SCORM.save = pipwerks.SCORM.data.save;
 pipwerks.SCORM.quit = pipwerks.SCORM.connection.terminate;
 
+pipwerks.SCORM.setScoreRaw = function(value) {
+  return pipwerks.SCORM.setByVersion('cmi.core.score.raw', 'cmi.score.raw', value);
+};
+pipwerks.SCORM.setScoreMin = function(value) {
+  return pipwerks.SCORM.setByVersion('cmi.core.score.min', 'cmi.score.min', value);
+};
+pipwerks.SCORM.setScoreMax = function(value) {
+  return pipwerks.SCORM.setByVersion('cmi.core.score.max', 'cmi.score.max', value);
+};
 
 
 // ------------------------------------------------------------------------- //
@@ -794,50 +932,54 @@ pipwerks.SCORM.quit = pipwerks.SCORM.connection.terminate;
 
 
 /* -------------------------------------------------------------------------
-   pipwerks.UTILS.StringToBoolean()
-   Converts 'boolean strings' into actual valid booleans.
+ pipwerks.UTILS.StringToBoolean()
+ Converts 'boolean strings' into actual valid booleans.
 
-   (Most values returned from the API are the strings "true" and "false".)
+ (Most values returned from the API are the strings "true" and "false".)
 
-   Parameters: String
-   Returns:    Boolean
----------------------------------------------------------------------------- */
+ Parameters: String
+ Returns:    Boolean
+ ---------------------------------------------------------------------------- */
 
-pipwerks.UTILS.StringToBoolean = function(value){
-    var t = typeof value;
-    switch(t){
-       //typeof new String("true") === "object", so handle objects as string via fall-through.
-       //See https://github.com/pipwerks/scorm-api-wrapper/issues/3
-       case "object":
-       case "string": return (/(true|1)/i).test(value);
-       case "number": return !!value;
-       case "boolean": return value;
-       case "undefined": return null;
-       default: return false;
-    }
+pipwerks.UTILS.StringToBoolean = function (value) {
+  var t = typeof value;
+  switch (t) {
+    //typeof new String("true") === "object", so handle objects as string via fall-through.
+    //See https://github.com/pipwerks/scorm-api-wrapper/issues/3
+    case "object":
+    case "string":
+      return (/(true|1)/i).test(value);
+    case "number":
+      return !!value;
+    case "boolean":
+      return value;
+    case "undefined":
+      return null;
+    default:
+      return false;
+  }
 };
 
 
-
 /* -------------------------------------------------------------------------
-   pipwerks.UTILS.trace()
-   Displays error messages when in debug mode.
+ pipwerks.UTILS.trace()
+ Displays error messages when in debug mode.
 
-   Parameters: msg (string)
-   Return:     None
----------------------------------------------------------------------------- */
+ Parameters: msg (string)
+ Return:     None
+ ---------------------------------------------------------------------------- */
 
-pipwerks.UTILS.trace = function(msg){
+pipwerks.UTILS.trace = function (msg) {
 
-     if(pipwerks.debug.isActive){
+  if (pipwerks.debug.isActive) {
 
-        if(window.console && window.console.log){
-            window.console.log(msg);
-        } else {
-            //alert(msg);
-        }
+    if (window.console && window.console.log) {
+      window.console.log(msg);
+    } else {
+      //alert(msg);
+    }
 
-     }
+  }
 };
 
 export default pipwerks;
