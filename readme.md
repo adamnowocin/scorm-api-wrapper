@@ -50,6 +50,9 @@ scormAPI.setScoreMin(0);
 // Set cmi.score.max / cmi.core.score.max (according to the SCORM version)
 scormAPI.setScoreMax(100);
 
+// Set lesson status
+scormAPI.status('set', 'completed');
+
 // Persist current state of the Data Model (i.e. LMSCommit() / Commit() )
 scormAPI.save();
 
