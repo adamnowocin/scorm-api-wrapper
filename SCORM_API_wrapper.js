@@ -539,6 +539,86 @@ pipwerks.SCORM.data.get = function (parameter) {
 
 
 /* -------------------------------------------------------------------------
+ pipwerks.SCORM.data.getByVersion(parameter)
+ Requests information from the LMS.
+
+ Parameter: parameter (string, name of the SCORM data model element)
+ Returns:   string (the value of the specified data model element)
+ ---------------------------------------------------------------------------- */
+
+pipwerks.SCORM.data.getByVersion = function (parameter12, parameter13) {
+
+  var value = null,
+    scorm = pipwerks.SCORM,
+    trace = pipwerks.UTILS.trace,
+    debug = scorm.debug,
+    traceMsgPrefix = "SCORM.data.get(" + parameter12 + ", " + parameter13 + ") ";
+
+  if (scorm.connection.isActive) {
+
+    var API = scorm.API.getHandle(),
+      errorCode = 0;
+
+    if (API) {
+
+      switch (scorm.version) {
+        case "1.2" :
+          value = API.LMSGetValue(parameter12);
+          break;
+        case "2004":
+          value = API.GetValue(parameter13);
+          break;
+      }
+
+      errorCode = debug.getCode();
+
+      //GetValue returns an empty string on errors
+      //If value is an empty string, check errorCode to make sure there are no errors
+      if (value !== "" || errorCode === 0) {
+
+        //GetValue is successful.
+        //If parameter is lesson_status/completion_status or exit status, let's
+        //grab the value and cache it so we can check it during connection.terminate()
+        switch (parameter) {
+
+          case "cmi.core.lesson_status":
+          case "cmi.completion_status" :
+            scorm.data.completionStatus = value;
+            break;
+
+          case "cmi.core.exit":
+          case "cmi.exit"     :
+            scorm.data.exitStatus = value;
+            break;
+
+        }
+
+      } else {
+
+        trace(traceMsgPrefix + "failed. \nError code: " + errorCode + "\nError info: " + debug.getInfo(errorCode));
+
+      }
+
+    } else {
+
+      trace(traceMsgPrefix + "failed: API is null.");
+
+    }
+
+  } else {
+
+    trace(traceMsgPrefix + "failed: API connection is inactive.");
+
+  }
+
+  trace(traceMsgPrefix + " value: " + value);
+
+  return String(value);
+
+};
+
+
+/* -------------------------------------------------------------------------
  pipwerks.SCORM.data.set()
  Tells the LMS to assign the value to the named data model element.
  Also stores the SCO's completion status in a variable named
@@ -627,7 +707,7 @@ pipwerks.SCORM.setByVersion = function (parameter12, parameter13, value) {
     trace = pipwerks.UTILS.trace,
     makeBoolean = pipwerks.UTILS.StringToBoolean,
     debug = scorm.debug,
-    traceMsgPrefix = "SCORM.data.setScoreRaw(" + parameter12 + ', ' + parameter13 + ") ";
+    traceMsgPrefix = "SCORM.data.setByVersion(" + parameter12 + ', ' + parameter13 + "', '" + value + "') ";
 
 
   if (scorm.connection.isActive) {
@@ -923,6 +1003,9 @@ pipwerks.SCORM.setScoreMin = function(value) {
 };
 pipwerks.SCORM.setScoreMax = function(value) {
   return pipwerks.SCORM.setByVersion('cmi.core.score.max', 'cmi.score.max', value);
+};
+pipwerks.SCORM.getScoreRaw = function() {
+  return pipwerks.SCORM.getByVersion('cmi.core.score.raw', 'cmi.score.raw');
 };
 
 
