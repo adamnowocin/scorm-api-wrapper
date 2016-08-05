@@ -579,15 +579,25 @@ pipwerks.SCORM.getByVersion = function (parameter12, parameter13) {
         //GetValue is successful.
         //If parameter is lesson_status/completion_status or exit status, let's
         //grab the value and cache it so we can check it during connection.terminate()
-        switch (parameter) {
+        switch (parameter12) {
 
           case "cmi.core.lesson_status":
-          case "cmi.completion_status" :
             scorm.data.completionStatus = value;
             break;
 
           case "cmi.core.exit":
-          case "cmi.exit"     :
+            scorm.data.exitStatus = value;
+            break;
+
+        }
+
+        switch (parameter13) {
+
+          case "cmi.completion_status":
+            scorm.data.completionStatus = value;
+            break;
+
+          case "cmi.exit":
             scorm.data.exitStatus = value;
             break;
 
@@ -995,16 +1005,16 @@ pipwerks.SCORM.set = pipwerks.SCORM.data.set;
 pipwerks.SCORM.save = pipwerks.SCORM.data.save;
 pipwerks.SCORM.quit = pipwerks.SCORM.connection.terminate;
 
-pipwerks.SCORM.setScoreRaw = function(value) {
+pipwerks.SCORM.setScoreRaw = function (value) {
   return pipwerks.SCORM.setByVersion('cmi.core.score.raw', 'cmi.score.raw', value);
 };
-pipwerks.SCORM.setScoreMin = function(value) {
+pipwerks.SCORM.setScoreMin = function (value) {
   return pipwerks.SCORM.setByVersion('cmi.core.score.min', 'cmi.score.min', value);
 };
-pipwerks.SCORM.setScoreMax = function(value) {
+pipwerks.SCORM.setScoreMax = function (value) {
   return pipwerks.SCORM.setByVersion('cmi.core.score.max', 'cmi.score.max', value);
 };
-pipwerks.SCORM.getScoreRaw = function() {
+pipwerks.SCORM.getScoreRaw = function () {
   return pipwerks.SCORM.getByVersion('cmi.core.score.raw', 'cmi.score.raw');
 };
 
