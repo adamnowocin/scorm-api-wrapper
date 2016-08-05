@@ -546,7 +546,7 @@ pipwerks.SCORM.data.get = function (parameter) {
  Returns:   string (the value of the specified data model element)
  ---------------------------------------------------------------------------- */
 
-pipwerks.SCORM.data.getByVersion = function (parameter12, parameter13) {
+pipwerks.SCORM.getByVersion = function (parameter12, parameter13) {
 
   var value = null,
     scorm = pipwerks.SCORM,
